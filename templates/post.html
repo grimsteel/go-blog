@@ -1,0 +1,12 @@
+{{ define "title" }}{{ .Title }}{{ end }}
+
+{{ define "main" }}
+<p>Published on {{ .Date }}</p>
+
+<div>
+  {{ .Render }}
+</div>
+
+<!-- apply code highlighting -->
+<script>hljs.highlightAll();</script>
+{{ end }}

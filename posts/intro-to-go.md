@@ -230,6 +230,21 @@ for {
 }
 ```
 
+
+#### Conditionals
+
+`if` statements do not have parentheses, but the curly braces around the block are required, unlike C-like languages.
+
+```go
+if a == 3 {
+    
+} else if a == 4 {
+
+}
+```
+
+`switch` statements without an argument essentially act like long if-else chains. The Fizz Buzz example below has one of these.
+
 #### Fizz Buzz
 
 Putting it all together: Here’s how you would write Fizz Buzz in Go. You can definitely write it in a much simpler way, but I’ve chosen to use as many different Go features as possible.
@@ -238,18 +253,19 @@ Putting it all together: Here’s how you would write Fizz Buzz in Go. You can d
 import "fmt"
 
 func fizzBuzz(end uint) {
-	for i := range(end) {
-		fizz, buzz := i % 3 == 0, i % 15 == 0
-		switch {
-			case fizz && buzz:
-				fmt.Println("FizzBuzz");
-			case fizz:
-				fmt.Println("Fizz");
-			case buzz:				fmt.Println("Buzz");
-			default:
-				fmt.Println(i);
-}
-}
+  for i := range(end) {
+    fizz, buzz := i % 3 == 0, i % 15 == 0
+    switch {
+      case fizz && buzz:
+        fmt.Println("FizzBuzz");
+      case fizz:
+        fmt.Println("Fizz");
+      case buzz:
+        fmt.Println("Buzz");
+      default:
+	    fmt.Println(i);
+    }
+  }
 }
 ```
 
@@ -263,17 +279,24 @@ The content for the articles will be contained in Markdown files, and metadata w
 
 We’re going to be using the `net/http` library. To start a web server, create an instance of the `http.Server` struct and call `ListenAndServe`:
 
+The `Handler` field is a function that handles each HTTP request. It takes a `ResponseWriter` and a `Request` object as parameters. We can write to the response with `Fprintf`.
+
+You might have noticed that the function syntax is a little different here: it's called a **closure**, or an anonymous function which can inherit the scope of the parent. The syntax is actually identical except for the omission of the function name.
+
 ```go
 package main
 
 import "net/http"
+import "fmt"
 
 func main() {
-	server := &http.Server{
-   	 	Addr:           "0.0.0.0:8080",
-    	  	Handler:       /* TODO */,
-  	}
-  	server.ListenAndServe()
+  server := &http.Server{
+    Addr:           "0.0.0.0:8080",
+    Handler:       func (w http.ResponseWriter, r *http.Request) {
+      fmt.Fprintf(w, "Hello, world!")
+    },
+  }
+  server.ListenAndServe()
 }
 ```
 
@@ -288,8 +311,9 @@ That being said, here are some libraries you might want to look into yourself to
 - Chi (JetBrains)
 - Go router (book)
 
-Go includes a built-in router of sorts, `http.ServeMux`. This allows you to assign a function to different routes. To use it, call `http.NewServeMux` and pass the instance as your handler function.  
-Every website also needs to be able to serve static files. `http.FileServer` can accomplish that: pass an instance of `http.Dir` into it. You’ll have to wrap it in `http.StripPrefix` when mounting it into the mux
+Go includes a built-in router of sorts, `http.ServeMux`. This allows you to assign a function to different routes. To use it, call `http.NewServeMux` and pass the instance as your handler function.
+
+Every website also needs to be able to serve static files. `http.FileServer` can accomplish that: pass an instance of `http.Dir` into it. You’ll have to wrap it in `http.StripPrefix` when mounting it into the mux. This is because the file paths _within_ the static directory do not have a `/static/` prefix.
 
 ```go
 package main
@@ -311,8 +335,6 @@ func main() {
   server.ListenAndServe()
 }
 ```
-
-(code snippet adapted from Go Web Programming)
 
 I’ll be using [water.css](https://watercss.kognise.dev/) to add some basic styling to the website, so go ahead and download that into the static folder. This is what the directory structure looks like right now:
 

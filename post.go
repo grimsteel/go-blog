@@ -1,9 +1,15 @@
 package main
 
 import (
-	"time"
-	"os"
 	"encoding/json"
+	"fmt"
+	"html/template"
+	"os"
+	"time"
+
+	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/html"
+	"github.com/gomarkdown/markdown/parser"
 )
 
 type Post struct {
@@ -36,4 +42,20 @@ func getPostList() ([]Post) {
 	return posts
 }
 
+// used by the template
+func (post *Post) Render() (template.HTML) {
+	// read file
+	postContents, err := os.ReadFile(fmt.Sprintf("posts/%s", post.Filename))
+	check(err)
 
+	extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
+	p := parser.NewWithExtensions(extensions)
+	doc := p.Parse(postContents)
+
+	// create HTML renderer with extensions
+	htmlFlags := html.CommonFlags | html.HrefTargetBlank
+	opts := html.RendererOptions{Flags: htmlFlags}
+	renderer := html.NewRenderer(opts)
+
+	return template.HTML(string(markdown.Render(doc, renderer)))
+}
