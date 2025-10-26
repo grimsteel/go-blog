@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Go Blog</title>
+    <link rel="stylesheet" href="/static/water.css" />
+  </head>
+  <body>
+    <h1>Siddhant's Go Blog</h1>
+    <hr />
+
+    {{ range $val := . }}
+    <div>
+      <h2>{{ $val.Title }}</h2>
+      <a href="/posts/{{ $val.Id }}">View post</a>
+      <p>Published on {{ $val.Date }}</p>
+    </div>
+    {{ end }}
+  </body>
+</html>
