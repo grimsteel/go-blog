@@ -4,13 +4,13 @@ This blog article assumes a good level of familiarity with general programming c
 
 ### Why use Go?
 
-Go is a performant and memory safe modern programming language. It contains native support for lightweight threads, called "Goroutines", making it especially suited for web services (Learn).
+Go is a performant and memory safe modern programming language. It contains native support for lightweight threads, called "Goroutines", making it especially suited for web services[^learn].
 
-The wealth of libraries available within Go itself mean external libraries do not need to be used to create performant and scalable websites, unlike many other languages. (Go Web Programming)
+The wealth of libraries available within Go itself mean external libraries do not need to be used to create performant and scalable websites, unlike many other languages[^web].
 
-Furthermore, Go is already being adopted by numerous big-tech companies with an interest in web development despite its comparatively young age (Go Web Programming)
+Furthermore, Go is already being adopted by numerous big-tech companies with an interest in web development despite its comparatively young age[^web].
 
-In addition, the static and strongly typed system will appear familiar to those experienced with C-like languages, making it an easy language to get started with for experienced programmers (Will).
+In addition, the static and strongly typed system will appear familiar to those experienced with C-like languages, making it an easy language to get started with for experienced programmers[^gist].
 
 ### Part 1: An Introduction to Go
 
@@ -18,13 +18,13 @@ In addition, the static and strongly typed system will appear familiar to those 
 
 You’ll need to install the Go compiler first, available at [https://go.dev](https://go.dev) or in your favorite package manager. As with other languages, I’d recommend creating a new folder for each project you create.
 
-Go also has a free online interactive playground: [https://go.dev/play/](https://go.dev/play/). This is useful for testing and sharing code snippets
+Go also has a free online interactive playground: [https://go.dev/play/](https://go.dev/play/). This is useful for testing and sharing code snippets[^learn].
 
 #### Hello, World
 
 Once you have the Go compiler installed, make a new folder for your project and run `go mod init` inside it. 
 
-Enter the following code in a file called `hello.go`, and run `go run hello.go` to compile and run it.
+Enter the following code in a file called `hello.go`, and run `go run hello.go` to compile and run it[^learn].
 
 ```go
 import "fmt"
@@ -36,7 +36,7 @@ func main() {
 
 How does this code work? Let’s break it down:
 
-- It starts with an import statement: this imports the “fmt” package, which is effectively equivalent to “stdio” in C.  
+- It starts with an import statement: this imports the “fmt” package[^learn], which is effectively equivalent to “stdio” in C.
 - It has a main function, which contains a print statement.
 
 Compare this to a Hello, world C program:
@@ -56,13 +56,13 @@ Apart from differences in the signature of the main method, they look very simil
 
 Go’s syntax is relatively simple. The following section is a quick introduction to Go’s syntax. I’ve pointed out some surprising or unique attributes of it where applicable. 
 
-For a more thorough introduction to syntax, check out the excellent GitHub Gist made by Bryan Will, or the official \[Tour of Go\]
+For a more thorough introduction to syntax, check out the excellent [GitHub Gist made by Bryan Will](https://gist.github.com/BrianWill/5be5a96c86cb4f7ce24034b50cde24fd), or the official [Tour of Go](https://go.dev/tour/welcome/1).
 
-Like Rust, semicolon line terminators are *optional* in Go, in most cases. Leave them out unless your program doesn’t compile\!
+Like Rust, semicolon line terminators are *optional* in Go, in most cases. Leave them out unless your program doesn’t compile\! [^gist]
 
 Go uses C-style comments. (// and /\* \*/)
 
-C Type Comparison: (Will)
+C Type Comparison: [^gist]
 
 Many integer types within Go are almost the same as the corresponding ones in stdint. 
 
@@ -71,7 +71,7 @@ Many integer types within Go are almost the same as the corresponding ones in st
 | char | int8\_t | int8 |
 | unsigned char | uint8\_t | uint8 *or* byte |
 | short | int16\_t | int16 |
-| int | int32\_t | int32 *or* rune\* |
+| int | int32\_t | int32 |
 | long | int64\_t | int64 |
 |  | size\_t | int |
 |  | uintptr\_t | uintptr |
@@ -80,17 +80,15 @@ Many integer types within Go are almost the same as the corresponding ones in st
 | bool |  | bool |
 | char\* |  | string |
 
-\*What is a rune? A rune is a single Unicode codepoint. These become relevant when finding the length of a string with non-ASCII characters, but we won’t be using runes in this guide.
-
 Like other modern languages, Go does have a built-in string type.
 
 Go’s operators are effectively the same as C. It includes the standard arithmetic, bitwise, and relational operators you’re likely familiar with.
 
 #### Variable Declaration
 
-Variables can either be declared with the var keyword or the walrus operator. Multiple variables — even those of *different types —* can be declared and assigned in a single statement. (Will)
+Variables can either be declared with the var keyword or the walrus operator. Multiple variables — even those of *different types —* can be declared and assigned in a single statement[^gist].
 
-Go infers types from the right-hand side of the expression, but an explicit type annotation can be added to the declaration statement. In this case, all variables in the declaration must have the same type. (Will)
+Go infers types from the right-hand side of the expression, but an explicit type annotation can be added to the declaration statement. In this case, all variables in the declaration must have the same type[^gist].
 
 ```go
 // the two following statements are equivalent
@@ -105,13 +103,13 @@ a, b = "bar", 41
 var c, d int8 = 6, 7
 ```
 
-Unlike other languages, it is a **compile-time** error in Go to declare a variable and not use it. This threw me off at first\! I’ll often declare variables but not actually write code that uses them until well into the project. Enforcing usage is definitely an interesting choice.
+Unlike other languages, it is a **compile-time** error in Go to declare a variable and not use it. This threw me off at first\! I’ll often declare variables but not actually write code that uses them until well into the project. Enforcing usage is definitely an interesting choice[^learn].
 
 #### Arrays
 
-Arrays have fixed size (known at compile-time) and known type. Go actually allows you to compare two arrays by *value* using the \== operator, as long as they have the same size and type\! (Will)
+Arrays have fixed size (known at compile-time) and known type. Go actually allows you to compare two arrays by *value* using the == operator, as long as they have the same size and type[^gist]!
 
-The array syntax may look backwards from a C-perspective (just wait until we get to pointers\!)
+The array syntax may look backwards from a C-perspective: the length is before the type.
 
 Array literals are also possible with curly braces, like C.
 
@@ -123,17 +121,9 @@ var bar [3]int = [3]int {1, 2, 3}
 var foobar = [...]string { "a", "b", "c" }
 ```
 
-#### Casting
-
-Go has no implicit type coercion, even between integer types and float types. To cast a variable to a type, call the type like a function. (Will)
-
-```go
-var a = int8(123123123)
-```
-
 #### Functions
 
-Functions are declared with the func keyword. Curly braces are required, and the return type appears within parentheses after the parameters. (Learn)
+Functions are declared with the func keyword. Curly braces are required, and the return type appears within parentheses after the parameters[^learn].
 
 Multiple return values are possible, but they must be destructured by the caller. (The syntax here is similar to that of JavaScript or Rust)
 
@@ -156,9 +146,9 @@ As you may have expected, your program’s entrypoint function should be called 
 
 #### Packages and Imports
 
-Go programs are structured into packages which can be imported by other packages. Go enforces directory structure with packages (Learn): all source files in a given directory must be a part of the same package. (By convention, the directory name and the package name should match, but this is *not* enforced (Will)).
+Go programs are structured into packages which can be imported by other packages. Go enforces directory structure with packages[^learn]: all source files in a given directory must be a part of the same package. (By convention, the directory name and the package name should match for libraries, but this is *not* enforced![^gist]).
 
-What’s interesting about Go is that import statements for non-standard library packages are “absolute” and specify the exact source of a package, like GitHub. This is a stark difference from other languages which typically have a standard package repository and list dependencies in a standalone file, like package.json or Cargo.toml
+What’s interesting about Go is that import statements for non-standard library packages are “absolute” and specify the exact source of a package, like GitHub. This is a stark difference from other languages which typically have a standard package repository and list dependencies in a standalone file, like package.json or Cargo.toml.
 
 ```go
 package main
@@ -168,19 +158,19 @@ import "fmt"
 import "github.com/user/package"
 ```
 
-If you are making a command-line binary, your package must be called “main”. However, one of the first roadblocks I encountered with this involved naming the module “main” in go.mod. Don’t do this\! Name it something else instead This can cause issues later on with testing. (Berger)
+If you are making a command-line binary, your package must be called “main”. However, one of the first roadblocks I encountered with this involved naming the _module_ “main” in go.mod. Don’t do this\! Name it something else instead This can cause issues later on with testing[^learn].
 
 One common package in the standard library is “fmt”. This package allows you to print, among other things.
 
-The fmt library contains fmt.Println, fmt.Print, and fmt.Printf. These do the same things as their counterparts in languages like Java.
+The fmt library contains fmt.Println, fmt.Print, and fmt.Printf. These do the same things as their counterparts in languages like Java[^learn].
 
-I won’t cover making your own libraries in this guide, but the video “Learn GO Fast: Full Tutorial” covers it well if you’re interested.
+I won’t cover making your own libraries in this guide, but the video [“Learn GO Fast: Full Tutorial”](www.youtube.com/watch?v=8uiZC0l4Ajw) covers the concepts well if you’re interested.
 
 #### Structs and Pointers
 
-Public members accessible outside of the struct **must begin with an uppercase character**. This is unlike other languages which use a visibility keyword for this purpose.
+Public members accessible outside of the struct **must begin with an uppercase character**. This is unlike other languages which use a visibility keyword for this purpose[^gist].
 
-Conceptually, structs in Go are identical to C structs. A struct is defined with the `struct` keyword. It can be named as a type by prepending the definition with `type TypeName`. (Will) (This actually applies to any custom type in Go \- think of it like a `typedef` from C++).
+Conceptually, structs in Go are identical to C structs. A struct is defined with the `struct` keyword. It can be named as a type by prepending the definition with `type TypeName`[^gist]. (This actually applies to any custom type in Go \- think of it like a `typedef` from C++).
 
 ```go
 type BlogArticle struct {
@@ -194,7 +184,7 @@ var article BlogArticle
 article.Url = "https://example.com"
 ```
 
-Pointer types use the same \* and & syntax from C. This is especially useful for structs which have a non-negligible cost associated with copying (Will)
+Pointer types use the same \* and & syntax from C. This is especially useful for structs which have a non-negligible cost associated with copying[^gist].
 
 ```go
 var a int = 3
@@ -205,11 +195,11 @@ articlePtr := &article
 
 #### Loops
 
-Go has only one loop construct: the for loop. It can be used as a traditional c-style for loop, a while loop, for a for-each loop over an array.  (Learn)
+Go has only one loop construct: the for loop. It can be used as a traditional c-style for loop, a while loop, for a for-each loop over an array[^learn].
 
 The syntax for the C-style loop and while loop should look familiar \- it’s the exact same as C or Java, except without the parentheses.
 
-Like C, parts of the for loop can be omitted. Omitting everything as well as the semicolons yields an infinite loop.
+Like C, parts of the for loop can be omitted. Omitting everything as well as the semicolons yields an infinite loop[^gist].
 
 ```go
 // C-style
@@ -269,9 +259,11 @@ func fizzBuzz(end uint) {
 }
 ```
 
+We use the walrus operator to evaluate whether a specific number is fizz, buzz, or both. We then use an argument-less switch.
+
 ### Part 2: Making a Website in Go
 
-In this section, I’ll introduce common libraries and packages used when creating web servers in Go. We’ll build a simple blog website capable of rendering rich text content and handling user comments. In fact, this is how the very article you are currently reading was published\! (not yet)
+In this section, I’ll introduce common libraries and packages used when creating web servers in Go. We’ll build a simple blog website capable of rendering rich text content and handling user comments. In fact, this is how the very article you are currently reading was published!
 
 The content for the articles will be contained in Markdown files, and metadata will be contained in a single JSON file. The aim of this short project is to demonstrate a wide range of Go’s capabilities.
 
@@ -286,9 +278,9 @@ $ go mod init go-blog
 
 #### Error Checking
 
-Many library methods in Go don't actually "panic", or throw an error when they fail. Instead, they just return an `error` object. For our purposes, we want to panic if something happens.
+Many library methods in Go don't actually "panic", or throw an error when they fail. Instead, they just return an `error` object. For our purposes, we want to panic if something happens[^jetbrains], so having a convenience function for this is nice.
 
-Create a file called `util.go` and add this convenience method to panic if there is a non-nil error: (jetbrains)
+Create a file called `util.go` and add this convenience method to panic if there is a non-nil error:
 
 ```go
 package main
@@ -302,11 +294,11 @@ func check(e error) {
 
 #### Starting a Web Server
 
-We’re going to be using the `net/http` library. To start a web server, create an instance of the `http.Server` struct and call `ListenAndServe`:
+We’re going to be using the `net/http` library. To start a web server, create an instance of the `http.Server` struct and call `ListenAndServe`[^web]:
 
 The `Handler` field is a function that handles each HTTP request. It takes a `ResponseWriter` and a `Request` object as parameters. We can write to the response with `Fprintf`.
 
-You might have noticed that the function syntax is a little different here: it's called a **closure**, or an anonymous function which can inherit the scope of the parent. The syntax is actually identical except for the omission of the function name.
+You might have noticed that the function syntax is a little different here: it's called a **closure**, or an anonymous function which can inherit the scope of the parent. The syntax is actually identical except for the omission of the function name[^gist].
 
 ```go
 package main // the _package_ can be called main
@@ -333,12 +325,12 @@ Go has a wealth of libraries available for your use, and there are many such lib
 
 That being said, here are some libraries you might want to look into yourself to make web development easier:
 
-- Chi (JetBrains)
-- Go router (book)
+- Chi[^jetbrains]: there's a [blog article from JetBrains](blog.jetbrains.com/go/2022/11/08/build-a-blog-with-go-templates/) which explains this well
+- Go Router[^web]
 
 Go includes a built-in router of sorts, `http.ServeMux`. This allows you to assign a function to different routes. To use it, call `http.NewServeMux` and pass the instance as your handler function.
 
-Every website also needs to be able to serve static files. `http.FileServer` can accomplish that: pass an instance of `http.Dir` into it. You’ll have to wrap it in `http.StripPrefix` when mounting it into the mux. This is because the file paths _within_ the static directory do not have a `/static/` prefix.
+Every website also needs to be able to serve static files. `http.FileServer` can accomplish that[^jetbrains]: pass an instance of `http.Dir` into it. You’ll have to wrap it in `http.StripPrefix` when mounting it into the mux. This is because the file paths _within_ the static directory do not have a `/static/` prefix.
 
 We'll mount our original handling function under `/` using the `HandleFunc` method.
 
@@ -389,7 +381,7 @@ We'll store the post metadata in a JSON file: create a file called `posts.json` 
 }]
 ```
 
-Go has excellent support for structured JSON parsing. Create a new file called `post.go` and setup a `Post` struct:
+Go has excellent support for structured JSON parsing[^web]. Create a new file called `post.go` and setup a `Post` struct:
 
 ```go
 package main
@@ -403,8 +395,6 @@ type Post struct {
 ```
 
 We'll make a function that gets all of the posts in `posts.json`.
-
-(go web prog)
 
 ```
 import (
@@ -425,7 +415,7 @@ func getPostList() ([]Post) {
 }
 ```
 
-We use the `os.ReadFile` method to read the given file, and we use `json.Unmarshal` to parse the JSON. The check method will cause the program to panic if parsing fails.
+We use the `os.ReadFile` method to read the given file, and we use `json.Unmarshal`[^web] to parse the JSON. The check method will cause the program to panic if parsing fails.
 
 #### Templates
 
@@ -456,7 +446,7 @@ Let’s start by creating the homepage. Create a folder called `templates`, and 
 </html>
 ```
 
-We use `range` to iterate over the posts. `$val` will refer to the current post, so we can access all of its public fields using dot notation. 
+We use `range` to iterate over the posts [^jetbrains]. `$val` will refer to the current post, so we can access all of its public fields using dot notation. 
 
 > What does `$val := .` mean?
 >
@@ -482,7 +472,7 @@ func renderTemplate(data any, templateFile string, w http.ResponseWriter) {
 }
 ```
 
-We use `Sprintf` to create the template filename string from just the "template id", like `index` for `templates/index.html`. As usual, we use `check` for error checking. The data passed to the template is contained in the `data` parameter.
+We use `Sprintf` to create the template filename string from just the "template id", like `index` for `templates/index.html` for use in `ParseFiles`[^web]. As usual, we use `check` for error checking. The data passed to the template is contained in the `data` parameter.
 
 Finally, tie this into the mux:
 
@@ -495,9 +485,33 @@ mux.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
 })
 ```
 
+#### Date Handling
+
+Currently, the dates being displayed don't look very nice. Let's format them more casually!
+
+Add a format function to `post.go`:
+
+```go
+import "time"
+
+
+func formatPostDate(post *Post) {
+	parsedDate, err := time.Parse(time.DateOnly, post.Date)
+	check(err)
+
+	post.Date = parsedDate.Format("Monday, January _2")
+}
+```
+
+This formatting system might look a little weird from a C perspective[^time]. Rather than using format specifiers like "MM" and "DD", go uses a specific "1-2-3" date: `01/02 03:04:05PM 2006 -0700`[^time].
+
+Therefore, to format the date as `DayOfWeek, Month, Day`, we use the corresponding attributes from Go's format date, resulting in `Monday, January _2`.
+
+If you're confused, don't worry! I was too when I first saw this. I would recommend reading [DigitalOcean's article on datetimes](https://digitalocean.com/community/tutorials/how-to-use-dates-and-times-in-go) in Go.
+
 #### Template Inheritance
 
-One of the most essential features in any templating language is the ability to inherit and reuse templates as components (Components)
+One of the most essential features in any templating language is the ability to inherit and reuse templates as components[^components].
 
 Create a new `base.html` template:
 
@@ -522,7 +536,9 @@ Create a new `base.html` template:
 {{ end }}
 ```
 
-Because we're going to have multiple different sections, we need to explicitly `{{ define }}` this block as `base`. When a block has been defined, it can be included using `{{ template }}`. This is how we include `title` and `main`, which will be defined in the individual template files. This should look familiar for those with Jinja or Liquid experience.
+Because we're going to have multiple different sections, we need to explicitly `{{ define }}` this block as `base`. 
+
+When a block has been defined, it can be included using `{{ template }}`. This is how we include `title` and `main`, which will be defined in the individual template files[^components]. This should look familiar for those with Jinja or Liquid experience.
 
 The dot after the included template name is the same as the dot for the post list above: it's the root template data. In this case, it's used to pass all the template data down into the nested blocks.
 
@@ -544,7 +560,7 @@ Let's modify `index.html` to use the base structure:
 
 The title block is defined with `Home` inside, and the main block is defined with the post listing.
 
-Finally, we need to modify our template rendering function:
+Finally, we need to modify our template rendering function[^web]:
 
 ```go
 t, err := template.ParseFiles(
@@ -566,11 +582,13 @@ The second is changing the `Execute` call to `ExecuteTemplate` to specify exactl
 
 ---
 
-I would also recommend checking out samvcode's video on this: they go into much more detail about other uses of templates as well.
+I would also recommend checking out [samvcodes's](http://www.youtube.com/watch?v=nX1syyFnUS4) video on this: they go into much more detail about other uses of templates as well.
 
 #### Adding Libraries
 
-Finally, let’s finish the most important part of the website: the blog article page itself\! We’ll need to use a Markdown renderer, like `gomarkdown/markdown`. Like I mentioned earlier, adding a library to a Go project doesn’t involve adding it to a single dependency file. Instead, just import it in any source file and run `go mod sum` to regenerate the lock file.
+Finally, let’s finish the most important part of the website: the blog article page itself\! We’ll need to use a Markdown renderer, like `gomarkdown/markdown`.
+
+Like I mentioned earlier, adding a library to a Go project doesn’t involve adding it to a single dependency file. Instead, just import it in any source file and run `go mod tidy` to regenerate the lock file.
 
 ```go
 import "github.com/gomarkdown/markdown"
@@ -584,16 +602,16 @@ func renderPost() {
 
 ### References
 
-1. Bhattacharyea, Aniket “Build a Blog with Go Templates.” *The GoLand Blog,* 8 November 2022, [blog.jetbrains.com/go/2022/11/08/build-a-blog-with-go-templates/](http://blog.jetbrains.com/go/2022/11/08/build-a-blog-with-go-templates/). JetBrains.
+[^jetbrains]: Bhattacharyea, Aniket “Build a Blog with Go Templates.” *The GoLand Blog,* 8 November 2022, [blog.jetbrains.com/go/2022/11/08/build-a-blog-with-go-templates/](http://blog.jetbrains.com/go/2022/11/08/build-a-blog-with-go-templates/). JetBrains.
 
-2. Chang, Sau Sheong. *Go Web Programming*. Manning Publications, 2016, *Go (O’Reilly Learning),* [learning.oreilly.com](https://learning.oreilly.com/library/view/go-web-programming/9781617292569/)
+[^web]: Chang, Sau Sheong. *Go Web Programming*. Manning Publications, 2016, *Go (O’Reilly Learning),* [learning.oreilly.com](https://learning.oreilly.com/library/view/go-web-programming/9781617292569/)
 
-3. *Components with HTML Templates in Go\!? \~ FULL STACK  Golang.* samvcodes, 3 Dec 2023, *YouTube*. Web. 6 Oct 2025, [www.youtube.com/watch?v=nX1syyFnUS4](http://www.youtube.com/watch?v=nX1syyFnUS4)
+[^components]: *Components with HTML Templates in Go\!? \~ FULL STACK  Golang.* samvcodes, 3 Dec 2023, *YouTube*. Web. 6 Oct 2025, [www.youtube.com/watch?v=nX1syyFnUS4](http://www.youtube.com/watch?v=nX1syyFnUS4)
 
-4. Davidson, Kristin “How To Use Dates and Times in Go” How to Code in Go, 2 February 2022, digitalocean.com/community/tutorials/how-to-use-dates-and-times-in-go. DigitalOcean
+[^time]: Davidson, Kristin. "How To Use Dates and Times in Go" *How to Code in Go*, 2 February 2022, [digitalocean.com/community/tutorials/how-to-use-dates-and-times-in-go](https://digitalocean.com/community/tutorials/how-to-use-dates-and-times-in-go). DigitalOcean.
 
-5. *Learn GO Fast: Full Tutorial*. Alex Mux. 4 Sep 2023\. *YouTube.* Web. 6 Oct 2025, [www.youtube.com/watch?v=8uiZC0l4Ajw](http://www.youtube.com/watch?v=8uiZC0l4Ajw).
+[^learn]: *Learn GO Fast: Full Tutorial*. Alex Mux. 4 Sep 2023\. *YouTube.* Web. 6 Oct 2025, [www.youtube.com/watch?v=8uiZC0l4Ajw](http://www.youtube.com/watch?v=8uiZC0l4Ajw).
 
-6. Will, Bryan. “Go language overview for experienced programmers.” *GitHub Gist*, Oct. 2016, [gist.github.com/BrianWill/5be5a96c86cb4f7ce24034b50cde24fd](http://gist.github.com/BrianWill/5be5a96c86cb4f7ce24034b50cde24fd).
+[^gist]: Will, Bryan. “Go language overview for experienced programmers.” *GitHub Gist*, Oct. 2016, [gist.github.com/BrianWill/5be5a96c86cb4f7ce24034b50cde24fd](http://gist.github.com/BrianWill/5be5a96c86cb4f7ce24034b50cde24fd).
 
 

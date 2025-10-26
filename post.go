@@ -53,7 +53,7 @@ func (post *Post) Render() (template.HTML) {
 	postContents, err := os.ReadFile(fmt.Sprintf("posts/%s", post.Filename))
 	check(err)
 
-	extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
+	extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock | parser.Footnotes
 	p := parser.NewWithExtensions(extensions)
 	doc := p.Parse(postContents)
 
