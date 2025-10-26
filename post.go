@@ -19,6 +19,11 @@ type Post struct {
 	Title string
 }
 
+type Comment struct {
+	Name string
+	Content string
+}
+
 func formatPostDate(post *Post) {
 	parsedDate, err := time.Parse(time.DateOnly, post.Date)
 	check(err)

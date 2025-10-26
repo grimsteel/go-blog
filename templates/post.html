@@ -1,11 +1,35 @@
-{{ define "title" }}{{ .Title }}{{ end }}
+{{ define "title" }}{{ .Post.Title }}{{ end }}
 
 {{ define "main" }}
-<p>Published on {{ .Date }}</p>
+<p>Published on {{ .Post.Date }}</p>
 
 <div>
-  {{ .Render }}
+  {{ .Post.Render }}
 </div>
+
+<h2>Comments</h2>
+
+{{ range $val := .Comments }}
+<div style="padding: 0px 2rem; margin-top: 2rem; border: 1px solid #dddddd33; border-radius: 4px">
+  <h4>{{ $val.Name }}</h4>
+  <p>{{ $val.Content }}</h4>
+</div>
+{{ end }}
+
+<h3>Add your comment:</h3>
+<form action="/posts/{{ .Post.Id }}/comment" method="POST">
+  <div>
+    <label for="input-name">Name</label>
+    <input id="input-name" required type="text" name="name" />
+  </div>
+
+  <div>
+    <label for="input-content">Message</label>
+    <textarea id="input-content" required name="message"></textarea>
+  </div>
+
+  <button>Submit</button>
+</form>
 
 <!-- apply code highlighting -->
 <script>hljs.highlightAll();</script>

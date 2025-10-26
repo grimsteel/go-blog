@@ -16,6 +16,9 @@ func main() {
 	// read posts
 	posts := getPostList()
 
+	// store comments in-memory
+	comments := make(map[string][]Comment)
+
   mux := http.NewServeMux()
 
 	// serve static files
@@ -43,8 +46,29 @@ func main() {
 			w.WriteHeader(404)
 			renderTemplate(nil, "404", w)
 		} else {
-			renderTemplate(post, "post", w)
+			renderTemplate(struct {
+				Post *Post
+				Comments []Comment
+			} {
+				Post: post,
+				Comments: comments[postId],
+			}, "post", w)
 		}
+	})
+
+	mux.HandleFunc("POST /posts/{id}/comment", func (w http.ResponseWriter, r *http.Request) {
+		postId := r.PathValue("id")
+		name := r.FormValue("name")
+		message := r.FormValue("message")
+
+		// add to comments
+		comments[postId] = append(comments[postId], Comment {
+			name,
+			message,
+		})
+
+		// redirect to post
+		http.Redirect(w, r, fmt.Sprintf("/posts/%s", postId), http.StatusSeeOther)
 	})
 
   server := &http.Server{
