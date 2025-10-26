@@ -275,6 +275,31 @@ In this section, I’ll introduce common libraries and packages used when creati
 
 The content for the articles will be contained in Markdown files, and metadata will be contained in a single JSON file. The aim of this short project is to demonstrate a wide range of Go’s capabilities.
 
+#### Project Setup
+
+Make a folder for your project and initialize a Go module. Remember to call the _module_ something other than `main`.
+
+```sh
+$ mkdir go-blog && cd go-blog
+$ go mod init go-blog
+```
+
+#### Error Checking
+
+Many library methods in Go don't actually "panic", or throw an error when they fail. Instead, they just return an `error` object. For our purposes, we want to panic if something happens.
+
+Create a file called `util.go` and add this convenience method to panic if there is a non-nil error: (jetbrains)
+
+```go
+package main
+
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+```
+
 #### Starting a Web Server
 
 We’re going to be using the `net/http` library. To start a web server, create an instance of the `http.Server` struct and call `ListenAndServe`:
@@ -284,7 +309,7 @@ The `Handler` field is a function that handles each HTTP request. It takes a `Re
 You might have noticed that the function syntax is a little different here: it's called a **closure**, or an anonymous function which can inherit the scope of the parent. The syntax is actually identical except for the omission of the function name.
 
 ```go
-package main
+package main // the _package_ can be called main
 
 import "net/http"
 import "fmt"
@@ -296,7 +321,7 @@ func main() {
       fmt.Fprintf(w, "Hello, world!")
     },
   }
-  server.ListenAndServe()
+  check(server.ListenAndServe())
 }
 ```
 
@@ -315,6 +340,8 @@ Go includes a built-in router of sorts, `http.ServeMux`. This allows you to assi
 
 Every website also needs to be able to serve static files. `http.FileServer` can accomplish that: pass an instance of `http.Dir` into it. You’ll have to wrap it in `http.StripPrefix` when mounting it into the mux. This is because the file paths _within_ the static directory do not have a `/static/` prefix.
 
+We'll mount our original handling function under `/` using the `HandleFunc` method.
+
 ```go
 package main
 
@@ -326,13 +353,15 @@ func main() {
   staticPath := "/static/"
   mux := http.NewServeMux()
   mux.Handle(staticPath, http.StripPrefix(staticPath, http.FileServer(http.Dir("./static")))
-  mux.HandleFunc("/", index)
+  mux.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
+    fmt.Fprintf(w, "Hello, world!")
+  })
 
   server := &http.Server{
     Addr:     "0.0.0.0:8080",
     Handler:  mux,
   }
-  server.ListenAndServe()
+  check(server.ListenAndServe())
 }
 ```
 
@@ -347,19 +376,197 @@ project
 - templates
 ```
 
+
+#### JSON Parsing
+
+We'll store the post metadata in a JSON file: create a file called `posts.json` in the root folder for your project:
+```json
+[{
+    "id": "first-post",
+    "date": "2025-10-20",
+    "filename": "first-post.md",
+    "title": "Example Post"
+}]
+```
+
+Go has excellent support for structured JSON parsing. Create a new file called `post.go` and setup a `Post` struct:
+
+```go
+package main
+
+type Post struct {
+	Id string
+	Date string
+	Filename string
+	Title string
+}
+```
+
+We'll make a function that gets all of the posts in `posts.json`.
+
+(go web prog)
+
+```
+import (
+    "encoding/json"
+    "os"
+)
+
+func getPostList() ([]Post) {
+    postListJson, err := os.ReadFile("posts.json")
+    check(err)
+    
+    // this variable will store the posts array
+    var posts []Post
+    // parse JSON
+    check(json.Unmarshal(postListJson, &posts))
+
+    return posts
+}
+```
+
+We use the `os.ReadFile` method to read the given file, and we use `json.Unmarshal` to parse the JSON. The check method will cause the program to panic if parsing fails.
+
 #### Templates
 
 Go has built in support for HTML templating. The syntax is reminiscent of Jinja from Python. 
 
-Let’s start by adding a post listing page. Create a folder called `templates`, and add a file called `post.html` into this folder. 
+Let’s start by creating the homepage. Create a folder called `templates`, and add a file called `index.html` into this folder. 
+
+```html
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Blog</title>
+    <link rel="stylesheet" href="/static/water.css" />
+  </head>
+  <body>
+    <h1>Example Blog Blog</h1>
+    <hr />
+
+    {{ range $val := . }}
+    <div>
+      <h2>{{ $val.Title }}</h2>
+      <a href="/posts/{{ $val.Id }}">View post</a>
+      <p>Published on {{ $val.Date }}</p>
+    </div>
+    {{ end }}
+  </body>
+</html>
+```
+
+We use `range` to iterate over the posts. `$val` will refer to the current post, so we can access all of its public fields using dot notation. 
+
+> What does `$val := .` mean?
+>
+> This is the template syntax for iterating over an array. In this case, `.` _is_ the posts array, because it is the "root data" passed to the template, as you'll see below
+
+Next, we have to serve this template. Create another function in `util.go` which renders a given template:
+
+```go
+import (
+	"fmt"
+	"html/template"
+	"net/http"
+)
+
+// jetbrains
+func renderTemplate(data any, templateFile string, w http.ResponseWriter) {
+	t, err := template.ParseFiles(
+		// page template
+		fmt.Sprintf("templates/%s.html", templateFile),
+	)
+	check(err)
+	check(t.Execute(w, data))
+}
+```
+
+We use `Sprintf` to create the template filename string from just the "template id", like `index` for `templates/index.html`. As usual, we use `check` for error checking. The data passed to the template is contained in the `data` parameter.
+
+Finally, tie this into the mux:
+
+```go
+// read posts
+posts := getPostList()
+    
+mux.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
+    renderTemplate(&posts, "index", w)
+})
+```
 
 #### Template Inheritance
 
-Components uising templates (Components...)
+One of the most essential features in any templating language is the ability to inherit and reuse templates as components (Components)
 
-Modify base
+Create a new `base.html` template:
 
-#### Aside: Components using templates\!** (Component
+```html
+{{ define "base" }}
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>{{ template "title" . }} • Blog</title>
+    <link rel="stylesheet" href="/static/water.css" />
+  </head>
+  <body>
+    <h1>Example Blog</h1>
+    <hr />
+    <h2>{{ template "title" . }}</h2>
+    
+    <!-- pass template data -->
+    {{ template "main" . }}
+  </body>
+</html>
+{{ end }}
+```
+
+Because we're going to have multiple different sections, we need to explicitly `{{ define }}` this block as `base`. When a block has been defined, it can be included using `{{ template }}`. This is how we include `title` and `main`, which will be defined in the individual template files. This should look familiar for those with Jinja or Liquid experience.
+
+The dot after the included template name is the same as the dot for the post list above: it's the root template data. In this case, it's used to pass all the template data down into the nested blocks.
+
+Let's modify `index.html` to use the base structure:
+
+```html
+{{ define "title" }}Home{{ end }}
+
+{{ define "main" }}
+{{ range $val := . }}
+<div>
+  <h2>{{ $val.Title }}</h2>
+  <a href="/posts/{{ $val.Id }}">View post</a>
+  <p>Published on {{ $val.Date }}</p>
+</div>
+{{ end }}
+{{ end }}
+```
+
+The title block is defined with `Home` inside, and the main block is defined with the post listing.
+
+Finally, we need to modify our template rendering function:
+
+```go
+t, err := template.ParseFiles(
+    // base template
+    "templates/base.html",
+    // page template
+    fmt.Sprintf("templates/%s.html", templateFile),
+)
+
+check(err)
+	
+// multiple separate templates 
+check(t.ExecuteTemplate(w, "base", data))
+```
+
+The first change is adding the base template as another argument to `ParseFiles`.
+
+The second is changing the `Execute` call to `ExecuteTemplate` to specify exactly which block we want to render. In this case, the `base` block is our root block.
+
+---
+
+I would also recommend checking out samvcode's video on this: they go into much more detail about other uses of templates as well.
 
 #### Adding Libraries
 
