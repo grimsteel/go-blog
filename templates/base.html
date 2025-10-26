@@ -1,0 +1,18 @@
+{{ define "base" }}
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>{{ template "title" . }} • Blog • Siddhant Kameswar</title>
+    <link rel="stylesheet" href="/static/water.css" />
+  </head>
+  <body>
+    <h1>Siddhant's Blog</h1>
+    <hr />
+    <h2>{{ template "title" . }}</h2>
+    
+    <!-- pass template data -->
+    {{ template "main" . }}
+  </body>
+</html>
+{{ end }}
