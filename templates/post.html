@@ -1,7 +1,7 @@
 {{ define "title" }}{{ .Post.Title }}{{ end }}
 
 {{ define "main" }}
-<p>Published on {{ .Post.Date }}</p>
+<p>Published on {{ .Post.HumanDate }}</p>
 
 <div>
   {{ .Post.Render }}

@@ -24,11 +24,11 @@ type Comment struct {
 	Content string
 }
 
-func formatPostDate(post *Post) {
+func (post *Post) HumanDate() (string) {
 	parsedDate, err := time.Parse(time.DateOnly, post.Date)
 	check(err)
 
-	post.Date = parsedDate.Format("Monday, January _2")
+	return parsedDate.Format("Monday, January _2")
 }
 
 func getPostList() ([]Post) {
@@ -38,11 +38,6 @@ func getPostList() ([]Post) {
 	// parse JSON
 	var posts []Post
 	check(json.Unmarshal(postListJson, &posts))
-
-	// need to use i here because range creates a copy
-	for i := range posts {
-		formatPostDate(&posts[i])
-	}
 
 	return posts
 }

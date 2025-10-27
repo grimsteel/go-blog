@@ -1,6 +1,6 @@
-> This article was written by Siddhant Kameswar. He has many years of coding experience, especially in C and web development. He has recently decided to add Go to his toolset.
+Learn how to make a blog website in Go without any prior Go experience!
 
-A tutorial for programming in Go for C programmers: build a website in Go without any prior Go experience
+> This article was written by Siddhant Kameswar. He is student and an aspiring developer with experience in many areas of programming.  He has recently decided to add Go to his toolset.
 
 This blog article assumes a good level of familiarity with general programming concepts as well as web development architecture. (HTTP, HTML, etc.)
 
@@ -269,6 +269,8 @@ In this section, I’ll introduce common libraries and packages used when creati
 
 The content for the articles will be contained in Markdown files, and metadata will be contained in a single JSON file. The aim of this short project is to demonstrate a wide range of Go’s capabilities.
 
+You can view the finished code [on GitHub](https://github.com/grimsteel/go-blog).
+
 #### Project Setup
 
 Make a folder for your project and initialize a Go module. Remember to call the _module_ something other than `main`.
@@ -497,13 +499,15 @@ Add a format function to `post.go`:
 import "time"
 
 
-func formatPostDate(post *Post) {
+func (post *Post) HumanDate() (string) {
 	parsedDate, err := time.Parse(time.DateOnly, post.Date)
 	check(err)
 
-	post.Date = parsedDate.Format("Monday, January _2")
+	return parsedDate.Format("Monday, January _2")
 }
 ```
+
+Notice the addition of a **receiver** before the function name. This is how you define member functions in Go: a "parameter"-like item before the function name with a pointer type. We can then call `post.HumanDate()` to get the rendered HTML. (Update `index.html` with this new method - you don't need parenthenses!)
 
 This formatting system might look a little weird from a C perspective[^time]. Rather than using format specifiers like "MM" and "DD", go uses a specific "1-2-3" date: `01/02 03:04:05PM 2006 -0700`[^time].
 
@@ -554,7 +558,7 @@ Let's modify `index.html` to use the base structure:
 <div>
   <h2>{{ $val.Title }}</h2>
   <a href="/posts/{{ $val.Id }}">View post</a>
-  <p>Published on {{ $val.Date }}</p>
+  <p>Published on {{ $val.HumanDate }}</p>
 </div>
 {{ end }}
 {{ end }}
@@ -590,17 +594,203 @@ I would also recommend checking out [samvcodes's](http://www.youtube.com/watch?v
 
 Finally, let’s finish the most important part of the website: the blog article page itself\! We’ll need to use a Markdown renderer, like `gomarkdown/markdown`.
 
-Like I mentioned earlier, adding a library to a Go project doesn’t involve adding it to a single dependency file. Instead, just import it in any source file and run `go mod tidy` to regenerate the lock file.
+Like I mentioned earlier, adding a library to a Go project doesn’t involve adding it to a single dependency file. Instead, just import it in any source file and run `go mod tidy` to regenerate the lock file[^learn].
+
+We'll add the following render function to `post.go`. This follows the example code snippet on `gomarkdown/markdown`'s README.
+
 
 ```go
-import "github.com/gomarkdown/markdown"
+import (
+    "github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/html"
+	"github.com/gomarkdown/markdown/parser"
+)
 
-func renderPost() {
-	
+func (post *Post) Render() (template.HTML) {
+	// read file
+	postContents, err := os.ReadFile(fmt.Sprintf("posts/%s", post.Filename))
+	check(err)
+
+	extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock | parser.Footnotes
+	p := parser.NewWithExtensions(extensions)
+	doc := p.Parse(postContents)
+
+	// create HTML renderer with extensions
+	htmlFlags := html.CommonFlags | html.HrefTargetBlank
+	opts := html.RendererOptions{Flags: htmlFlags}
+	renderer := html.NewRenderer(opts)
+
+	return template.HTML(string(markdown.Render(doc, renderer)))
 }
 ```
 
+Because `markdown.Render` returns actual HTML, we need to explicitly tell Go not to escape it by wrapping it in `template.HTML`.
+
+The actual post template is pretty simple: we just print the various attributes of the post.
+
+
+```html
+{{ define "title" }}{{ .Post.Title }}{{ end }}
+
+{{ define "main" }}
+<p>Published on {{ .Post.Date }}</p>
+
+<div>
+  {{ .Post.Render }}
+</div>
+
+<!-- apply code highlighting -->
+<script>hljs.highlightAll();</script>
+{{ end }}
+```
+
+I also added highlight-js for syntax highlighting. As this isn't the focus of this article, I won't go into detail about it here, but if you want to use it add the script and stylesheet to `base.html`.
+
+#### Wildcard Routes
+
+Next, we need to add the post to the mux. Wildcards and path arguments are a recent addition to Go's mux, so Go Web Programming doesn't cover them. You can look into wildcards more on the Go documentation. They also have a good blog article about arguments.
+
+Arguments are surrounded in curly braces in the path. You can access them with `PathValue`:
+
+```go
+// wildcard recently added
+mux.HandleFunc("/posts/{id}", func (w http.ResponseWriter, r *http.Request) {
+    postId := r.PathValue("id")
+})
+```
+
+Next, we need to find this post using a simple for loop:
+
+```go
+    // initialize to nil
+    var post *Post = nil
+    for i := range posts {
+        if posts[i].Id == postId {
+            post = &posts[i]
+            break
+        }
+    }
+```
+
+We iterate over indices instead of posts to eliminate any unneeded copying.
+
+Finally, we need to render the template. The struct definition here without a name is called an **anonymous struct**. Instead of specifying a named struct, we literally type in a struct definition for the type. The reason I chose to use a struct instead of just passing in the post is for the use of comments later on.
+
+```go
+    renderTemplate(struct {
+        Post *Post
+        Comments []Comment
+    } {
+        Post: post,
+        Comments: comments[postId],
+    }, "post", w)
+```
+
+We also need to handle the case where the post ID is invalid:
+
+```go
+// not found
+if post == nil {
+    w.WriteHeader(404)
+    renderTemplate(nil, "404", w)
+    return
+}
+```
+
+I won't cover the 404 template here, but if you're curious you can look at it in the repository.
+
 #### Form Responses
+
+A blog isn't complete without a comment section!
+
+Adding in-memory comment support is surprisingly simple. Start by adding the comment struct:
+
+```go
+type Comment struct {
+	Name string
+	Content string
+}
+```
+
+Then, create a **map**  (a dictionary or hash map, depending on where you're coming from) in the main function:
+
+```go
+// store comments in-memory
+comments := make(map[string][]Comment)
+```
+
+This is a map where the keys are `string`s and the values are `[]Comment`. Essentially, a map of post ID to comments.
+
+Next, pass comment data to the post and add the relevant frontend markup:
+
+```go
+renderTemplate(struct {
+    Post *Post
+    Comments []Comment
+} {
+    Post: post,
+    Comments: comments[postId],
+}, "post", w)
+```
+
+```html
+<h2>Comments</h2>
+
+{{ range $val := .Comments }}
+<div>
+  <h4>{{ $val.Name }}</h4>
+  <p>{{ $val.Content }}</h4>
+</div>
+{{ end }}
+
+<h3>Add your comment:</h3>
+<form action="/posts/{{ .Post.Id }}/comment" method="POST">
+  <div>
+    <label for="input-name">Name</label>
+    <input id="input-name" required type="text" name="name" />
+  </div>
+
+  <div>
+    <label for="input-content">Message</label>
+    <textarea id="input-content" required name="message"></textarea>
+  </div>
+
+  <button>Submit</button>
+</form>
+```
+
+This displays a list of comments in unstyled `div`s and adds a form with fields for name and message. Note that we can get the comments list with `.Comments`, and the action on the form is dynamically generated with the post ID.
+
+Finally, tie the comment posting into the mux:
+
+```
+mux.HandleFunc("POST /posts/{id}/comment", func (w http.ResponseWriter, r *http.Request) {
+    postId := r.PathValue("id")
+    name := r.FormValue("name")
+    message := r.FormValue("message")
+
+    // add to comments
+    comments[postId] = append(comments[postId], Comment {
+        name,
+        message,
+    })
+    
+    // redirect to post
+    http.Redirect(w, r, fmt.Sprintf("/posts/%s", postId), http.StatusSeeOther)
+})
+```
+
+We can specify a method before the path in `HandleFunc` to filter requests to only the specified method.
+
+Again, we get the post ID with `PathValue`. Go makes handling forms really easy: just use `FormValue` to get elements from the submitted form[^web]!.
+
+We then use `append` to add the comment to the list[^gist] for the specified post. (This makes a new array).
+
+To finish, we use `http.Redirect` to send the user back to the post. This takes in the request, response, path, and redirect status code as arguments[^web].
+
+#### Blog complete!
+
+Congratulations! You've successfully mastered the basics of Go. As promised, the complete code for this blog is available [on GitHub](https://github.com/grimsteel/go-blog).
 
 ### References
 
