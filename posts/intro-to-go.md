@@ -1,3 +1,5 @@
+> This article was written by Siddhant Kameswar. He has many years of coding experience, especially in C and web development. He has recently decided to add Go to his toolset.
+
 A tutorial for programming in Go for C programmers: build a website in Go without any prior Go experience
 
 This blog article assumes a good level of familiarity with general programming concepts as well as web development architecture. (HTTP, HTML, etc.)

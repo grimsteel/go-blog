@@ -32,7 +32,7 @@ func formatPostDate(post *Post) {
 }
 
 func getPostList() ([]Post) {
-	postListJson, err := os.ReadFile("posts.json")
+	postListJson, err := os.ReadFile("posts/posts.json")
 	check(err)
 
 	// parse JSON
